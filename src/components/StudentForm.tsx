@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Student, DaySchedule, TimeSlot } from '@/lib/types';
 import { DAYS_OF_WEEK, HOURS } from '@/lib/constants';
 import { supabase } from '@/lib/supabase';
-import { Check, Loader2, Upload, User, Hash, BookOpen } from 'lucide-react';
+import { Check, Loader2, User, Hash, BookOpen } from 'lucide-react';
 
 const StudentForm: React.FC = () => {
   const { toast } = useToast();
@@ -21,8 +21,7 @@ const StudentForm: React.FC = () => {
   
   const initialSchedule: DaySchedule[] = DAYS_OF_WEEK.map(day => ({
     day,
-    slots: HOURS.map((_, idx) => ({ hour: idx, isSelected: false })),
-    imageUrl: undefined
+    slots: HOURS.map((_, idx) => ({ hour: idx, isSelected: false }))
   }));
 
   const [student, setStudent] = useState<Student>({
@@ -58,51 +57,6 @@ const StudentForm: React.FC = () => {
       };
       return { ...prev, schedule: newSchedule };
     });
-  };
-
-  const handleImageUpload = async (dayIndex: number, e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) return;
-    
-    const file = e.target.files[0];
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${student.regNo}-${DAYS_OF_WEEK[dayIndex].toLowerCase()}.${fileExt}`;
-    const filePath = `timetables/${fileName}`;
-    
-    try {
-      // Upload the image to Supabase Storage
-      const { data, error } = await supabase.storage
-        .from('timetable-images')
-        .upload(filePath, file, { upsert: true });
-        
-      if (error) throw error;
-      
-      // Get the public URL
-      const { data: publicUrlData } = supabase.storage
-        .from('timetable-images')
-        .getPublicUrl(filePath);
-      
-      // Update the student state with the image URL
-      setStudent(prev => {
-        const newSchedule = [...prev.schedule];
-        newSchedule[dayIndex] = {
-          ...newSchedule[dayIndex],
-          imageUrl: publicUrlData.publicUrl
-        };
-        return { ...prev, schedule: newSchedule };
-      });
-      
-      toast({
-        title: "Timetable Image Uploaded",
-        description: `Your ${DAYS_OF_WEEK[dayIndex]} timetable image has been uploaded.`,
-      });
-    } catch (error) {
-      console.error("Error uploading image:", error);
-      toast({
-        variant: "destructive",
-        title: "Upload Failed",
-        description: "There was an error uploading your timetable image.",
-      });
-    }
   };
 
   const validateForm = () => {
@@ -157,8 +111,8 @@ const StudentForm: React.FC = () => {
         schedule: initialSchedule
       });
       
-      // Redirect to thank you page or back to home
-      navigate('/');
+      // Redirect to admin page
+      navigate('/admin');
     } catch (error) {
       console.error("Error submitting form:", error);
       toast({
@@ -239,7 +193,7 @@ const StudentForm: React.FC = () => {
         <CardHeader>
           <CardTitle>Timetable Information</CardTitle>
           <CardDescription>
-            Select your free time slots for each day and upload your timetable images if available.
+            Select your free time slots for each day of the week.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -278,27 +232,6 @@ const StudentForm: React.FC = () => {
                         </Label>
                       </div>
                     ))}
-                  </div>
-                  
-                  <div className="mt-6 space-y-2">
-                    <Label htmlFor={`${day}-image`} className="flex items-center gap-2">
-                      <Upload size={16} />
-                      Upload Timetable Image (Optional)
-                    </Label>
-                    <Input
-                      id={`${day}-image`}
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleImageUpload(dayIndex, e as React.ChangeEvent<HTMLInputElement>)}
-                      className="cursor-pointer"
-                    />
-                    {student.schedule[dayIndex].imageUrl && (
-                      <div className="mt-2">
-                        <p className="text-sm text-green-600 flex items-center gap-1">
-                          <Check size={16} /> Image uploaded successfully
-                        </p>
-                      </div>
-                    )}
                   </div>
                 </div>
               </TabsContent>

@@ -7,7 +7,6 @@ export type TimeSlot = {
 export type DaySchedule = {
   day: string;
   slots: TimeSlot[];
-  imageUrl?: string;
 };
 
 export type Student = {
