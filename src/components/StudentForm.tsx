@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
@@ -10,7 +9,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Student, DaySchedule, TimeSlot } from '@/lib/types';
 import { DAYS_OF_WEEK, HOURS } from '@/lib/constants';
-import { supabase } from '@/lib/supabase';
+import { saveStudent } from '@/lib/db';
 import { Check, Loader2, User, Hash, BookOpen } from 'lucide-react';
 
 const StudentForm: React.FC = () => {
@@ -85,25 +84,20 @@ const StudentForm: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      // Insert the student data into Supabase
-      const { data, error } = await supabase
-        .from('students')
-        .insert([{
-          name: student.name,
-          reg_no: student.regNo,
-          roll_no: student.rollNo,
-          schedule: student.schedule
-        }])
-        .select();
+      const result = await saveStudent({
+        name: student.name,
+        regNo: student.regNo,
+        rollNo: student.rollNo,
+        schedule: student.schedule
+      });
       
-      if (error) throw error;
+      if (!result.success) throw new Error("Failed to save student data");
       
       toast({
         title: "Submission Successful",
         description: "Your timetable information has been saved.",
       });
       
-      // Reset the form
       setStudent({
         name: '',
         regNo: '',
@@ -111,7 +105,6 @@ const StudentForm: React.FC = () => {
         schedule: initialSchedule
       });
       
-      // Redirect to admin page
       navigate('/admin');
     } catch (error) {
       console.error("Error submitting form:", error);

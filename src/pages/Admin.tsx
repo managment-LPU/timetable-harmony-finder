@@ -1,13 +1,12 @@
-
 import React, { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from '@/lib/supabase';
 import { DAYS_OF_WEEK, HOURS } from '@/lib/constants';
 import { Student, AnalysisResult, CommonSlot } from '@/lib/types';
 import { analyzeTimeSlots } from '@/lib/gemini';
+import { getStudents } from '@/lib/db';
 import { RefreshCw, Users, Clock, FileText, Loader2 } from 'lucide-react';
 
 const Admin: React.FC = () => {
@@ -30,28 +29,15 @@ const Admin: React.FC = () => {
   const fetchStudents = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('students')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const result = await getStudents();
       
-      if (error) throw error;
+      if (!result.success) throw new Error("Failed to fetch students");
       
-      // Transform the data to match our Student type
-      const transformedData = data.map((item: any): Student => ({
-        id: item.id,
-        name: item.name,
-        regNo: item.reg_no,
-        rollNo: item.roll_no,
-        schedule: item.schedule,
-        createdAt: item.created_at
-      }));
-      
-      setStudents(transformedData);
+      setStudents(result.data);
       
       // If we have students, run the analysis
-      if (transformedData.length > 0) {
-        runAnalysis(transformedData);
+      if (result.data.length > 0) {
+        runAnalysis(result.data);
       }
     } catch (error) {
       console.error("Error fetching students:", error);
