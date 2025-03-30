@@ -1,10 +1,10 @@
 
 export const DAYS_OF_WEEK = [
   "Monday",
-  "Tuesday", 
-  "Wednesday", 
-  "Thursday", 
-  "Friday", 
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
   "Saturday"
 ];
 
@@ -21,4 +21,4 @@ export const HOURS = [
   "5:00 PM"
 ];
 
-export const GEMINI_API_KEY = "AIzaSyDrQxBtRcL5yMU5aP9lr7vpLrLHR8CiQ10";
+export const GEMINI_API_KEY = "AIzaSyCC9ztiIqh1ZEgad91zwh1230OVvDibS0Q";

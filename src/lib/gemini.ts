@@ -1,6 +1,6 @@
+
 import { HOURS } from "./constants";
 import { Student, CommonSlot } from "./types";
-import { GEMINI_API_KEY } from "./constants";
 
 export async function analyzeTimeSlots(students: Student[]): Promise<{commonSlots: CommonSlot[], aiSummary: string}> {
   try {
@@ -66,7 +66,7 @@ export async function analyzeTimeSlots(students: Student[]): Promise<{commonSlot
     `;
 
     // Call Gemini API
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`, {
+    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyCC9ztiIqh1ZEgad91zwh1230OVvDibS0Q", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
