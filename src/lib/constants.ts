@@ -21,4 +21,4 @@ export const HOURS = [
   "5:00 PM"
 ];
 
-// API keys are now handled securely through a proxy endpoint
+export const GEMINI_API_KEY = "AIzaSyCC9ztiIqh1ZEgad91zwh1230OVvDibS0Q";
