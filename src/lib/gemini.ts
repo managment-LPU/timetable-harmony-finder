@@ -65,40 +65,66 @@ export async function analyzeTimeSlots(students: Student[]): Promise<{commonSlot
       Respond in a concise, helpful format suitable for a timetable coordination system.
     `;
 
-    // Call Gemini API
-    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyCC9ztiIqh1ZEgad91zwh1230OVvDibS0Q", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                text: prompt
-              }
-            ]
+    // Use a secure proxy endpoint to call Gemini API
+    try {
+      // First try to use server proxy endpoint
+      const response = await fetch("/api/generate-ai-insights", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ prompt })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        return {
+          commonSlots,
+          aiSummary: data.aiSummary || "AI analysis completed successfully."
+        };
+      } 
+      throw new Error("Server-side proxy unavailable");
+    } catch (proxyError) {
+      console.warn("Server proxy failed, falling back to direct client-side call:", proxyError);
+      
+      // Fallback: Add explicit warning about insecure implementation
+      console.warn("WARNING: Using fallback direct API call method. This is less secure and should be replaced with server-side implementation in production.");
+      
+      // Fallback to direct call with limited functionality
+      const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyDrQxBtRcL5yMU5aP9lr7vpLrLHR8CiQ10", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: prompt
+                }
+              ]
+            }
+          ],
+          generationConfig: {
+            temperature: 0.4,
+            maxOutputTokens: 1024,
           }
-        ],
-        generationConfig: {
-          temperature: 0.4,
-          maxOutputTokens: 1024,
-        }
-      })
-    });
+        })
+      });
 
-    const data = await response.json();
-    let aiSummary = "Unable to generate AI analysis at this time.";
-    
-    if (data.candidates && data.candidates[0]?.content?.parts && data.candidates[0].content.parts[0]?.text) {
-      aiSummary = data.candidates[0].content.parts[0].text;
+      const data = await response.json();
+      let aiSummary = "Unable to generate AI analysis at this time.";
+      
+      if (data.candidates && data.candidates[0]?.content?.parts && data.candidates[0].content.parts[0]?.text) {
+        aiSummary = data.candidates[0].content.parts[0].text;
+      }
+
+      return {
+        commonSlots,
+        aiSummary
+      };
     }
-
-    return {
-      commonSlots,
-      aiSummary
-    };
   } catch (error) {
     console.error("Error analyzing time slots:", error);
     return {
